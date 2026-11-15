@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DOT EMPIRES</title>
+<style>
+:root{--bg:#101827;--panel:#182438;--line:#2d405b;--muted:#9eb0c9;--gold:#f4c65e;--blue:#55a8ff;--red:#ff7070;--green:#62d69a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#203451,#0c1421 65%);color:#eef4ff;font:15px system-ui, sans-serif;min-height:100vh}
+button{border:0;border-radius:10px;padding:10px 14px;background:#315d91;color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button:disabled{opacity:.4;cursor:not-allowed}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line);background:#111c2dcc}
+.logo{font-weight:1000;letter-spacing:3px;font-size:22px}.logo span{color:var(--gold)}
+main{max-width:1200px;margin:auto;padding:22px}.screen{display:none}.screen.active{display:block}
+.hero{max-width:700px;margin:9vh auto;text-align:center}.hero h1{font-size:clamp(42px,8vw,76px);margin:0;letter-spacing:5px}.hero h1 span{color:var(--gold)}.hero p{color:var(--muted);font-size:17px;line-height:1.6}
+.panel{background:#182438eF;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 12px 35px #0004}
+.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+.board-wrap{overflow:auto;background:#0c1726;border:1px solid var(--line);border-radius:14px;padding:12px}
+#board{display:grid;grid-template-columns:repeat(10,minmax(36px,1fr));gap:4px;min-width:430px}
+.tile{aspect-ratio:1;border:1px solid #3b5068;border-radius:7px;background:#243b35;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:11px;position:relative;cursor:pointer;min-height:39px}
+.tile.water{background:#183c60}.tile.forest{background:#28513c}.tile.mountain{background:#55536a}.tile.city{box-shadow:inset 0 0 0 2px var(--gold)}.tile.p1{background-color:#24558a}.tile.p2{background-color:#813b49}.tile.selected{outline:3px solid white;z-index:2}.tile .emoji{font-size:17px}.tile small{font-size:9px;color:#e4edf8}
+.side{display:flex;flex-direction:column;gap:12px}.resources{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.resource{background:#101c2d;border-radius:10px;padding:9px}.resource b{display:block;font-size:17px}.muted{color:var(--muted)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions button{font-size:12px;padding:10px 5px}.log{max-height:150px;overflow:auto;font-size:12px;color:#bdcbe0;line-height:1.5}.turn{font-size:18px;font-weight:800}.tag{display:inline-block;padding:4px 8px;border-radius:20px;background:#273b56;color:#dceaff;font-size:11px}
+#toast{min-height:20px;color:var(--gold);font-size:13px}.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:10px}
+@media(max-width:800px){.game-layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.side .panel:first-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header><div class="logo">DOT <span>EMPIRES</span></div><div class="tag">STRATEGY • 1v1</div></header>
+<main>
+<section id="home" class="screen active">
+ <div class="hero"><div class="tag">BUILD • EXPAND • CONQUER</div><h1>DOT <span>EMPIRES</span></h1>
+ <p>Become an emperor. Build your economy, claim resource-rich land, raise an army, and capture your rival's capital.</p>
+ <div class="panel" style="text-align:left;margin:25px auto;max-width:430px">
+ <h3>New match</h3><p class="muted">Two players take turns on the same device in this prototype.</p>
+ <button style="width:100%;padding:14px" onclick="startGame()">GENERATE WORLD</button>
+ </div><p class="muted" style="font-size:12px">Prototype build • Online multiplayer is not connected yet</p></div>
+</section>
+<section id="game" class="screen">
+ <div class="game-layout">
+  <div class="panel">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px"><div><div class="turn" id="turnTitle">Blue Empire</div><div class="muted" id="turnSub">Turn 1 • 3 action points</div></div><button onclick="endTurn()">END TURN →</button></div>
+   <div class="board-wrap"><div id="board"></div></div>
+   <div class="legend"><span>🌊 Water</span><span>🌲 Forest</span><span>⛰️ Mountain</span><span>🏙️ City</span><span>🟦 Blue</span><span>🟥 Red</span></div>
+   <div id="toast"></div>
+  </div>
+  <aside class="side">
+   <div class="panel"><h3 style="margin-top:0">Empire resources</h3><div class="resources" id="resources"></div></div>
+   <div class="panel"><h3 style="margin-top:0">Actions <span class="tag" id="apTag">3 AP</span></h3><div class="actions">
+    <button onclick="build('money')">💰 Money factory</button><button onclick="build('stone')">🪨 Stone factory</button>
+    <button onclick="build('iron')">⛓️ Iron factory</button><button onclick="build('wood')">🪵 Wood factory</button>
+    <button onclick="build('barracks')">⚔️ Barracks</button><button onclick="recruit()">➕ Recruit dots</button>
+    <button onclick="attack()">🎲 Attack</button><button onclick="showRules()">📜 Rules</button>
+   </div><p class="muted" style="font-size:11px">Select one of your owned tiles before building or recruiting. Moving armies is free: select a friendly tile, then a neighboring tile.</p></div>
+   <div class="panel"><h3 style="margin-top:0">Battle log</h3><div id="log" class="log">Your empire awaits...</div></div>
+  </aside>
+ </div>
+</section>
+</main>
+<script>
+const W=10,H=8, names=['Blue Empire','Red Empire'];
+let tiles=[],players=[],current=0,ap=3,turn=1,selected=-1,moveFrom=-1,gameOver=false;
+const specs={money:{cost:150,resource:'money',income:50,emoji:'💰',terrain:'city'},stone:{cost:120,resource:'stone',income:20,emoji:'🪨',terrain:'mountain'},iron:{cost:180,resource:'iron',income:15,emoji:'⛓️',terrain:'mountain'},wood:{cost:120,resource:'wood',income:20,emoji:'🪵',terrain:'forest'}};
+function startGame(){players=[{money:500,stone:0,iron:0,wood:0,army:8},{money:500,stone:0,iron:0,wood:0,army:8}];tiles=[];for(let i=0;i<W*H;i++){let x=i%W,y=Math.floor(i/W),r=Math.random(),terrain=r<.13?'water':r<.32?'forest':r<.48?'mountain':'plain';tiles.push({terrain,owner:-1,building:null,city:false,army:0})}
+ const bases=[{x:1,y:3},{x:8,y:4}];bases.forEach((b,p)=>{let t=tiles[b.y*W+b.x];t.terrain='city';t.city=true;t.owner=p;t.army=8;t.building='capital';for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){let x=b.x+dx,y=b.y+dy;if(x>=0&&x<W&&y>=0&&y<H){let n=tiles[y*W+x];if(n.terrain==='water')n.terrain='plain';if(Math.abs(dx)+Math.abs(dy)===1)n.owner=p}}});
+ // ensure resource deposits are available
+ for(let i=0;i<tiles.length;i++){let t=tiles[i];if(t.terrain==='forest'||t.terrain==='mountain')t.deposit=true}
+ current=0;ap=3;turn=1;selected=-1;moveFrom=-1;gameOver=false;log('A new world has been generated. Blue plays first.');document.getElementById('home').classList.remove('active');document.getElementById('game').classList.add('active');render();}
+function log(s){let el=document.getElementById('log');el.innerHTML=s+'<br>'+el.innerHTML}
+function say(s){document.getElementById('toast').textContent=s}
+function render(){document.getElementById('turnTitle').textContent=names[current];document.getElementById('turnSub').textContent='Turn '+turn+' • '+ap+' action points';document.getElementById('apTag').textContent=ap+' AP';
+let p=players[current];document.getElementById('resources').innerHTML=['money','stone','iron','wood','army'].map(k=>'<div class="resource"><span class="muted">'+k.toUpperCase()+'</span><b>'+p[k]+'</b></div>').join('');
+let board=document.getElementById('board');board.innerHTML='';tiles.forEach((t,i)=>{let d=document.createElement('button');d.className='tile '+t.terrain+(t.owner===0?' p1':t.owner===1?' p2':'')+(t.city?' city':'')+(i===selected?' selected':'');d.innerHTML='<span class="emoji">'+(t.building==='capital'?'👑':t.building==='barracks'?'⚔️':t.building?specs[t.building].emoji:t.terrain==='water'?'🌊':t.terrain==='forest'?'🌲':t.terrain==='mountain'?'⛰️':t.city?'🏙️':'')+'</span><small>'+(t.army?'● '+t.army:'')+'</small>';d.onclick=()=>clickTile(i);board.appendChild(d)});}
+function clickTile(i){if(gameOver)return;let t=tiles[i];if(moveFrom>=0){let a=tiles[moveFrom];if(adj(moveFrom,i)&&a.owner===current&&a.army>0&&t.terrain!=='water'){let n=Math.max(1,Math.floor(a.army/2));a.army-=n;t.army+=n;t.owner=current;log(names[current]+' moved '+n+' dots.');moveFrom=-1;selected=i;render();return}else moveFrom=-1}
+if(t.owner===current&&t.army>0){selected=i;moveFrom=i;say('Friendly army selected. Click a neighboring land tile to move half its dots (free).');render();return}
+selected=i;say(t.owner===current?'Owned tile selected.':'Tile selected.');render();}
+function adj(a,b){let x=a%W,y=Math.floor(a/W),u=b%W,v=Math.floor(b/W);return Math.abs(x-u)+Math.abs(y-v)===1}
+function spend(n=1){if(ap<n){say('Not enough action points. End your turn.');return false}ap-=n;return true}
+function build(type){if(selected<0||tiles[selected].owner!==current){say('Select one of your own tiles first.');return}let t=tiles[selected],p=players[current],s=specs[type];if(!spend())return;if(t.building||t.terrain!==s.terrain){ap++;say('This factory needs an empty '+s.terrain+' tile. Action point refunded.');return}if(p.money<s.cost){ap++;say('Not enough money. Action point refunded.');return}p.money-=s.cost;t.building=type;log(names[current]+' built a '+type+' factory (-$'+s.cost+').');render()}
+function recruit(){if(selected<0||tiles[selected].owner!==current||tiles[selected].building!=='barracks'){say('Select a tile with your barracks first.');return}let p=players[current];if(p.money<50||!spend())return;p.money-=50;p.army+=3;tiles[selected].army+=3;log(names[current]+' recruited 3 dots (-$50).');render()}
+function attack(){if(selected<0||tiles[selected].owner!==current||tiles[selected].army<1){say('Select a tile you own with an army.');return}let targets=[];tiles.forEach((t,i)=>{if(t.owner===1-current&&adj(selected,i))targets.push(i)});if(!targets.length){say('No enemy tile next to this army.');return}if(!spend())return;let i=targets[0],a=tiles[selected],d=tiles[i],atk=a.army,def=d.army;let rollA=Array.from({length:Math.min(5,Math.max(1,Math.ceil(atk/3)))},()=>1+Math.floor(Math.random()*6)).reduce((x,y)=>x+y,0);let rollD=Array.from({length:Math.min(5,Math.max(1,Math.ceil(def/3)))},()=>1+Math.floor(Math.random()*6)).reduce((x,y)=>x+y,0);if(rollA>rollD){d.owner=current;d.army=Math.max(1,Math.ceil(atk/2));a.army=0;log('Victory! Attack '+rollA+' vs defense '+rollD+'. Territory captured.');if(d.building==='capital'){gameOver=true;setTimeout(()=>alert(names[current]+' wins! The enemy capital has fallen.'),50)}}else{a.army=Math.max(0,Math.floor(atk/2));log('Attack repelled: '+rollA+' vs '+rollD+'.');}selected=-1;render()}
+function endTurn(){if(gameOver)return;let p=players[current];tiles.forEach(t=>{if(t.owner===current&&t.building&&specs[t.building])p[specs[t.building].resource]+=specs[t.building].income});current=1-current;if(current===0)turn++;ap=3;selected=-1;moveFrom=-1;log(names[current]+' turn begins. Factories produced resources.');render();say('New turn: collect income and plan your moves.')}
+function showRules(){alert('GOAL: Capture the enemy capital.\n\nEach player gets 3 action points per turn. Moving an army to a neighboring land tile is free.\n\nFactories: Money $150 → +$50/turn (city); Stone $120 → +20/turn (mountain); Iron $180 → +15/turn (mountain); Wood $120 → +20/turn (forest).\n\nBarracks and advanced buildings are next on the roadmap. No upkeep. Battles roll multiple six-sided dice; larger armies roll more dice.');}
+</script>
+</body></html>
