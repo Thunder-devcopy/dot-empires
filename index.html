@@ -1,83 +1,980 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DOT EMPIRES</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1v1 Dots War</title>
 <style>
-:root{--bg:#101827;--panel:#182438;--line:#2d405b;--muted:#9eb0c9;--gold:#f4c65e;--blue:#55a8ff;--red:#ff7070;--green:#62d69a}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#203451,#0c1421 65%);color:#eef4ff;font:15px system-ui, sans-serif;min-height:100vh}
-button{border:0;border-radius:10px;padding:10px 14px;background:#315d91;color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button:disabled{opacity:.4;cursor:not-allowed}
-header{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line);background:#111c2dcc}
-.logo{font-weight:1000;letter-spacing:3px;font-size:22px}.logo span{color:var(--gold)}
-main{max-width:1200px;margin:auto;padding:22px}.screen{display:none}.screen.active{display:block}
-.hero{max-width:700px;margin:9vh auto;text-align:center}.hero h1{font-size:clamp(42px,8vw,76px);margin:0;letter-spacing:5px}.hero h1 span{color:var(--gold)}.hero p{color:var(--muted);font-size:17px;line-height:1.6}
-.panel{background:#182438eF;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 12px 35px #0004}
-.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
-.board-wrap{overflow:auto;background:#0c1726;border:1px solid var(--line);border-radius:14px;padding:12px}
-#board{display:grid;grid-template-columns:repeat(10,minmax(36px,1fr));gap:4px;min-width:430px}
-.tile{aspect-ratio:1;border:1px solid #3b5068;border-radius:7px;background:#243b35;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:11px;position:relative;cursor:pointer;min-height:39px}
-.tile.water{background:#183c60}.tile.forest{background:#28513c}.tile.mountain{background:#55536a}.tile.city{box-shadow:inset 0 0 0 2px var(--gold)}.tile.p1{background-color:#24558a}.tile.p2{background-color:#813b49}.tile.selected{outline:3px solid white;z-index:2}.tile .emoji{font-size:17px}.tile small{font-size:9px;color:#e4edf8}
-.side{display:flex;flex-direction:column;gap:12px}.resources{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.resource{background:#101c2d;border-radius:10px;padding:9px}.resource b{display:block;font-size:17px}.muted{color:var(--muted)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions button{font-size:12px;padding:10px 5px}.log{max-height:150px;overflow:auto;font-size:12px;color:#bdcbe0;line-height:1.5}.turn{font-size:18px;font-weight:800}.tag{display:inline-block;padding:4px 8px;border-radius:20px;background:#273b56;color:#dceaff;font-size:11px}
-#toast{min-height:20px;color:var(--gold);font-size:13px}.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:10px}
-@media(max-width:800px){.game-layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.side .panel:first-child{grid-column:1/-1}}
+:root{
+  --soil:#2b2216; --soil2:#3a2f1f; --bark:#5a4630; --parch:#f1e6c8; --moss:#1d4a28;
+  --blue:#2f7bf0; --red:#f08a2a; --gold:#f5c542; --mat:#c98a4b; --ppl:#7dd3a8;
+}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;background:#12200f;color:var(--parch);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif}
+#app{display:flex;flex-direction:column;height:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* top bar */
+#top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--soil);border-bottom:3px solid #17110a}
+.title{font-weight:800;font-size:20px;letter-spacing:.5px;white-space:nowrap}
+.title i{font-style:normal;color:var(--blue)} .title u{text-decoration:none;color:var(--red)}
+.resrow{display:flex;gap:8px;flex-wrap:wrap}
+.res{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 8px;background:var(--soil2);border:2px solid var(--bark);border-radius:10px;min-width:150px}
+.res .ic{font-size:24px;line-height:1}
+.res small{display:block;font-size:11px;opacity:.75;line-height:1.1}
+.res b{font-size:20px;font-variant-numeric:tabular-nums}
+.res em{font-style:normal;font-size:12px;margin-left:6px;opacity:.8}
+#rMat{border-color:var(--mat)} #rGold{border-color:var(--gold)} #rPpl{border-color:var(--ppl)}
+#landwrap{min-width:150px}
+#landwrap small{display:block;font-size:11px;opacity:.75;margin-bottom:3px}
+#landbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#1a2a16;border:2px solid var(--bark)}
+#landP{background:var(--blue);width:0%} #landE{background:var(--red);width:0%}
+.ctl{display:flex;align-items:center;gap:6px}
+#clock{font-variant-numeric:tabular-nums;font-weight:700;min-width:64px;text-align:right}
+#tpHud{font-weight:900;color:#fde047;background:#4a3c14;border:2px solid #b8962e;border-radius:8px;padding:5px 10px;white-space:nowrap}
+#bEndTurn{background:#287b3d;border:2px solid #79d58b;border-radius:8px;padding:5px 12px;font-weight:900}
+#bEndTurn:disabled{opacity:.45;cursor:wait}
+.ctl button{background:var(--soil2);border:2px solid var(--bark);border-radius:8px;padding:4px 10px}
+.ctl button:hover{background:var(--bark)}
+
+/* stage */
+#stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;background:#0d1a0b}
+canvas{display:block;border-radius:6px;box-shadow:0 6px 30px rgba(0,0,0,.6);touch-action:none;cursor:crosshair}
+#toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(20,14,8,.92);border:2px solid var(--gold);padding:7px 16px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap}
+#toast.show{opacity:1}
+#hint{position:absolute;right:10px;bottom:8px;font-size:12px;opacity:.7;background:rgba(0,0,0,.4);padding:4px 8px;border-radius:6px;pointer-events:none;max-width:60%;text-align:right}
+
+/* overlays */
+.ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,18,8,.78);z-index:5;padding:12px}
+/* Let setup clicks pass through to the map; keep the setup card itself interactive. */
+#setup{pointer-events:none}#setup .card{pointer-events:auto}
+.ov.hidden{display:none}
+/* Let map clicks pass through the setup backdrop; only the instruction card captures clicks. */
+#setup{pointer-events:none}
+#setup .card{pointer-events:auto}
+.card{background:var(--soil);border:3px solid var(--bark);border-radius:16px;padding:24px 28px;max-width:520px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.card h1{margin:0 0 6px;font-size:36px;letter-spacing:1px}
+.card h1 i{font-style:normal;color:var(--blue)} .card h1 u{text-decoration:none;color:var(--red)}
+.card p{margin:8px 0;line-height:1.45}
+.card ul{text-align:left;margin:12px auto;padding-left:20px;line-height:1.5;font-size:14px}
+.diffs{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.diffs button{background:var(--soil2);border:2px solid var(--bark);border-radius:10px;padding:8px 18px;font-weight:700}
+.diffs button.on{background:var(--moss);border-color:#6fd17f}
+.big{background:#3f9d4d;border:3px solid #7fe08c;border-radius:12px;padding:10px 30px;font-size:20px;font-weight:800;color:#fff}
+.big:hover{background:#49b058}
+
+/* bottom bar */
+#bar{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;justify-content:center;padding:8px 10px;background:var(--soil);border-top:3px solid #17110a}
+.group{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch}
+.sep{width:2px;background:var(--bark);margin:0 4px;border-radius:2px}
+.btn{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:92px;padding:6px 10px;background:var(--soil2);border:2px solid var(--bark);border-radius:10px;font-weight:700;font-size:13px;line-height:1.2;position:relative}
+.btn:hover{background:var(--bark)}
+.btn .nm{font-size:14px}
+.btn .cs{font-size:12px;font-weight:600;opacity:.95;margin-top:2px}
+.btn kbd{position:absolute;top:2px;right:5px;font-size:10px;opacity:.5;font-family:inherit}
+.btn.poor{opacity:.45}
+.btn.lock{opacity:.35;filter:grayscale(1)}
+.btn.active{border-color:#7fe08c;background:var(--moss);box-shadow:0 0 0 2px #7fe08c55}
+.btn.toggle.on{border-color:var(--gold);background:#4a3c14}
+#armyInfo{display:flex;flex-direction:column;justify-content:center;font-size:13px;padding:0 8px;min-width:110px}
+#armyInfo b{font-size:16px}
+@media (max-width:760px){.title{font-size:16px}.res{min-width:110px;padding:4px 8px}.res b{font-size:16px}.btn{min-width:74px;padding:4px 6px}#hint{display:none}}
+.grp{display:flex;flex-direction:column;align-items:center;gap:3px}
+.grp+.grp{border-left:2px solid var(--bark);padding-left:10px}
+.gl{font-size:11px;opacity:.7}
+.row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+#c{position:absolute;inset:0;width:100%;height:100%;border-radius:0;box-shadow:none}
+#stage{overflow:hidden}
+#mini{position:absolute;left:10px;bottom:10px;width:240px;height:200px;border:3px solid var(--bark);border-radius:8px;background:#0d1a0b;z-index:3;cursor:pointer;touch-action:none;box-shadow:0 4px 16px rgba(0,0,0,.6)}
+@media (max-width:760px){#mini{width:150px;height:125px}}
+.collapsed{display:none!important}
+.tgl{position:absolute;left:50%;transform:translateX(-50%);z-index:4;background:var(--soil);border:2px solid var(--bark);color:var(--parch);padding:0 16px;height:20px;line-height:1;font-size:11px;cursor:pointer;opacity:.9}
+#tglTop{top:0;border-top:0;border-radius:0 0 8px 8px} #tglBot{bottom:0;border-bottom:0;border-radius:8px 8px 0 0}
+#zoomctl{position:absolute;right:10px;top:28px;z-index:4;display:flex;flex-direction:column;gap:4px}
+#zoomctl button{width:34px;height:34px;font-size:20px;line-height:1;background:var(--soil);border:2px solid var(--bark);border-radius:8px;color:var(--parch);cursor:pointer}
+#zoomctl button:hover{background:var(--bark)}
 </style>
 </head>
 <body>
-<header><div class="logo">DOT <span>EMPIRES</span></div><div class="tag">STRATEGY • 1v1</div></header>
-<main>
-<section id="home" class="screen active">
- <div class="hero"><div class="tag">BUILD • EXPAND • CONQUER</div><h1>DOT <span>EMPIRES</span></h1>
- <p>Become an emperor. Build your economy, claim resource-rich land, raise an army, and capture your rival's capital.</p>
- <div class="panel" style="text-align:left;margin:25px auto;max-width:430px">
- <h3>New match</h3><p class="muted">Two players take turns on the same device in this prototype.</p>
- <button style="width:100%;padding:14px" onclick="startGame()">GENERATE WORLD</button>
- </div><p class="muted" style="font-size:12px">Prototype build • Online multiplayer is not connected yet</p></div>
-</section>
-<section id="game" class="screen">
- <div class="game-layout">
-  <div class="panel">
-   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px"><div><div class="turn" id="turnTitle">Blue Empire</div><div class="muted" id="turnSub">Turn 1 • 3 action points</div></div><button onclick="endTurn()">END TURN →</button></div>
-   <div class="board-wrap"><div id="board"></div></div>
-   <div class="legend"><span>🌊 Water</span><span>🌲 Forest</span><span>⛰️ Mountain</span><span>🏙️ City</span><span>🟦 Blue</span><span>🟥 Red</span></div>
-   <div id="toast"></div>
+<div id="app">
+  <div id="top">
+    <div class="title">1v1 <i>DOTS</i> <u>WAR</u></div>
+    <div class="resrow">
+      <div class="res" id="rMat"><span class="ic">🧱</span><div><small>Building material</small><b id="vMat">0</b><em id="rtMat"></em></div></div>
+      <div class="res" id="rGold"><span class="ic">🪙</span><div><small>Gold</small><b id="vGold">0</b><em id="rtGold"></em></div></div>
+      <div class="res" id="rPpl"><span class="ic">👥</span><div><small>People</small><b id="vPpl">0</b><em id="rtPpl"></em></div></div>
+    </div>
+    <div id="landwrap"><small id="landTxt">Land</small><div id="landbar"><span id="landP"></span><span id="landE"></span></div></div>
+    <div class="ctl"><span id="clock">Turn 1</span><span id="tpHud">3 / 3 TP</span><button id="bEndTurn">End turn ▶</button></div>
   </div>
-  <aside class="side">
-   <div class="panel"><h3 style="margin-top:0">Empire resources</h3><div class="resources" id="resources"></div></div>
-   <div class="panel"><h3 style="margin-top:0">Actions <span class="tag" id="apTag">3 AP</span></h3><div class="actions">
-    <button onclick="build('money')">💰 Money factory</button><button onclick="build('stone')">🪨 Stone factory</button>
-    <button onclick="build('iron')">⛓️ Iron factory</button><button onclick="build('wood')">🪵 Wood factory</button>
-    <button onclick="build('barracks')">⚔️ Barracks</button><button onclick="recruit()">➕ Recruit dots</button>
-    <button onclick="attack()">🎲 Attack</button><button onclick="showRules()">📜 Rules</button>
-   </div><p class="muted" style="font-size:11px">Select one of your owned tiles before building or recruiting. Moving armies is free: select a friendly tile, then a neighboring tile.</p></div>
-   <div class="panel"><h3 style="margin-top:0">Battle log</h3><div id="log" class="log">Your empire awaits...</div></div>
-  </aside>
- </div>
-</section>
-</main>
+
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <canvas id="mini" width="240" height="200" title="Click to jump. Right-click to send your selected dots there"></canvas>
+    <button class="tgl" id="tglTop" title="Hide or show the top bar">▲</button>
+    <button class="tgl" id="tglBot" title="Hide or show the build bar">▼</button>
+    <div id="zoomctl"><button id="zIn" title="Zoom in (+)">+</button><button id="zOut" title="Zoom out (-)">−</button></div>
+    <div id="toast"></div>
+    <div id="hint">WASD, arrows or screen edges scroll · Mouse wheel or +/- zooms · Middle-drag pans · Minimap: click to jump, right-click to send dots · Q selects the army · Actions cost 1 TP · Right-click across water uses a Port, Ctrl+right-click flies</div>
+
+    <div id="menu" class="ov">
+      <div class="card">
+        <h1>1v1 <i>DOTS</i> <u>WAR</u></h1>
+        <p>You rule the blue kingdom at the bottom. Destroy the orange castle at the top to win. The map is about 200 screens big, so scroll with WASD, the arrow keys or the screen edges, and use the minimap.</p>
+        <ul>
+          <li>You can buy three things: <b>Factories</b> (people, building material or gold), <b>Cities</b> and <b>Military</b>.</li>
+          <li>Click a city to grow it: village, town, city, mega city. Barracks need a factory, airports need a town.</li>
+          <li>Turn-based strategy: you get <b>3 TP every turn</b>. Building, upgrading, training, and issuing movement orders each cost 1 TP.</li><li>Press <b>End Turn</b> when you are done. The enemy then spends its 3 TP and both armies take their actions.</li><li>Dots conquer nearby grass during turn resolution. Water needs a <b>Port</b> or <b>Airport</b>.</li>
+        </ul>
+        <div class="diffs" id="diffs">
+          <button data-d="0">Easy</button><button data-d="1" class="on">Normal</button><button data-d="2">Hard</button>
+        </div>
+        <button class="big" id="start">Start battle</button>
+      </div>
+    </div>
+
+    <div id="setup" class="ov hidden">
+      <div class="card">
+        <h1>Plan your <i>nation</i></h1>
+        <p id="setupText">Place your capital inside your territory.</p>
+        <p><b id="setupCount">Capital · 1 of 4</b></p>
+        <button class="big" id="setupDone">Finish setup</button>
+      </div>
+    </div>
+    <div id="end" class="ov hidden">
+      <div class="card">
+        <h1 id="endT"></h1>
+        <p id="endP"></p>
+        <button class="big" id="again">Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="bar">
+    <div class="grp"><span class="gl">Factory</span><div class="row" id="g0"></div></div>
+    <div class="grp"><span class="gl">City</span><div class="row" id="g1"></div></div>
+    <div class="grp"><span class="gl">Military</span><div class="row" id="g2"></div></div>
+    <div class="grp"><span class="gl">Army</span><div class="row">
+      <button class="btn" id="bT1"><span class="nm">⚫ Train dot</span><span class="cs">🪙12 👥1</span><kbd>T</kbd></button>
+      <button class="btn" id="bT5"><span class="nm">⚫ Train ×5</span><span class="cs">🪙60 👥5</span></button>
+      
+      <button class="btn" id="bSel"><span class="nm">🔵 Select army</span><span class="cs">all dots</span><kbd>Q</kbd></button>
+      <div id="armyInfo"><span>Army <b id="vArmy">0</b></span><span id="vQueue" style="opacity:.75"></span></div>
+    </div></div>
+  </div>
+</div>
+
 <script>
-const W=10,H=8, names=['Blue Empire','Red Empire'];
-let tiles=[],players=[],current=0,ap=3,turn=1,selected=-1,moveFrom=-1,gameOver=false;
-const specs={money:{cost:150,resource:'money',income:50,emoji:'💰',terrain:'city'},stone:{cost:120,resource:'stone',income:20,emoji:'🪨',terrain:'mountain'},iron:{cost:180,resource:'iron',income:15,emoji:'⛓️',terrain:'mountain'},wood:{cost:120,resource:'wood',income:20,emoji:'🪵',terrain:'forest'}};
-function startGame(){players=[{money:500,stone:0,iron:0,wood:0,army:8},{money:500,stone:0,iron:0,wood:0,army:8}];tiles=[];for(let i=0;i<W*H;i++){let x=i%W,y=Math.floor(i/W),r=Math.random(),terrain=r<.13?'water':r<.32?'forest':r<.48?'mountain':'plain';tiles.push({terrain,owner:-1,building:null,city:false,army:0})}
- const bases=[{x:1,y:3},{x:8,y:4}];bases.forEach((b,p)=>{let t=tiles[b.y*W+b.x];t.terrain='city';t.city=true;t.owner=p;t.army=8;t.building='capital';for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){let x=b.x+dx,y=b.y+dy;if(x>=0&&x<W&&y>=0&&y<H){let n=tiles[y*W+x];if(n.terrain==='water')n.terrain='plain';if(Math.abs(dx)+Math.abs(dy)===1)n.owner=p}}});
- // ensure resource deposits are available
- for(let i=0;i<tiles.length;i++){let t=tiles[i];if(t.terrain==='forest'||t.terrain==='mountain')t.deposit=true}
- current=0;ap=3;turn=1;selected=-1;moveFrom=-1;gameOver=false;log('A new world has been generated. Blue plays first.');document.getElementById('home').classList.remove('active');document.getElementById('game').classList.add('active');render();}
-function log(s){let el=document.getElementById('log');el.innerHTML=s+'<br>'+el.innerHTML}
-function say(s){document.getElementById('toast').textContent=s}
-function render(){document.getElementById('turnTitle').textContent=names[current];document.getElementById('turnSub').textContent='Turn '+turn+' • '+ap+' action points';document.getElementById('apTag').textContent=ap+' AP';
-let p=players[current];document.getElementById('resources').innerHTML=['money','stone','iron','wood','army'].map(k=>'<div class="resource"><span class="muted">'+k.toUpperCase()+'</span><b>'+p[k]+'</b></div>').join('');
-let board=document.getElementById('board');board.innerHTML='';tiles.forEach((t,i)=>{let d=document.createElement('button');d.className='tile '+t.terrain+(t.owner===0?' p1':t.owner===1?' p2':'')+(t.city?' city':'')+(i===selected?' selected':'');d.innerHTML='<span class="emoji">'+(t.building==='capital'?'👑':t.building==='barracks'?'⚔️':t.building?specs[t.building].emoji:t.terrain==='water'?'🌊':t.terrain==='forest'?'🌲':t.terrain==='mountain'?'⛰️':t.city?'🏙️':'')+'</span><small>'+(t.army?'● '+t.army:'')+'</small>';d.onclick=()=>clickTile(i);board.appendChild(d)});}
-function clickTile(i){if(gameOver)return;let t=tiles[i];if(moveFrom>=0){let a=tiles[moveFrom];if(adj(moveFrom,i)&&a.owner===current&&a.army>0&&t.terrain!=='water'){let n=Math.max(1,Math.floor(a.army/2));a.army-=n;t.army+=n;t.owner=current;log(names[current]+' moved '+n+' dots.');moveFrom=-1;selected=i;render();return}else moveFrom=-1}
-if(t.owner===current&&t.army>0){selected=i;moveFrom=i;say('Friendly army selected. Click a neighboring land tile to move half its dots (free).');render();return}
-selected=i;say(t.owner===current?'Owned tile selected.':'Tile selected.');render();}
-function adj(a,b){let x=a%W,y=Math.floor(a/W),u=b%W,v=Math.floor(b/W);return Math.abs(x-u)+Math.abs(y-v)===1}
-function spend(n=1){if(ap<n){say('Not enough action points. End your turn.');return false}ap-=n;return true}
-function build(type){if(selected<0||tiles[selected].owner!==current){say('Select one of your own tiles first.');return}let t=tiles[selected],p=players[current],s=specs[type];if(!spend())return;if(t.building||t.terrain!==s.terrain){ap++;say('This factory needs an empty '+s.terrain+' tile. Action point refunded.');return}if(p.money<s.cost){ap++;say('Not enough money. Action point refunded.');return}p.money-=s.cost;t.building=type;log(names[current]+' built a '+type+' factory (-$'+s.cost+').');render()}
-function recruit(){if(selected<0||tiles[selected].owner!==current||tiles[selected].building!=='barracks'){say('Select a tile with your barracks first.');return}let p=players[current];if(p.money<50||!spend())return;p.money-=50;p.army+=3;tiles[selected].army+=3;log(names[current]+' recruited 3 dots (-$50).');render()}
-function attack(){if(selected<0||tiles[selected].owner!==current||tiles[selected].army<1){say('Select a tile you own with an army.');return}let targets=[];tiles.forEach((t,i)=>{if(t.owner===1-current&&adj(selected,i))targets.push(i)});if(!targets.length){say('No enemy tile next to this army.');return}if(!spend())return;let i=targets[0],a=tiles[selected],d=tiles[i],atk=a.army,def=d.army;let rollA=Array.from({length:Math.min(5,Math.max(1,Math.ceil(atk/3)))},()=>1+Math.floor(Math.random()*6)).reduce((x,y)=>x+y,0);let rollD=Array.from({length:Math.min(5,Math.max(1,Math.ceil(def/3)))},()=>1+Math.floor(Math.random()*6)).reduce((x,y)=>x+y,0);if(rollA>rollD){d.owner=current;d.army=Math.max(1,Math.ceil(atk/2));a.army=0;log('Victory! Attack '+rollA+' vs defense '+rollD+'. Territory captured.');if(d.building==='capital'){gameOver=true;setTimeout(()=>alert(names[current]+' wins! The enemy capital has fallen.'),50)}}else{a.army=Math.max(0,Math.floor(atk/2));log('Attack repelled: '+rollA+' vs '+rollD+'.');}selected=-1;render()}
-function endTurn(){if(gameOver)return;let p=players[current];tiles.forEach(t=>{if(t.owner===current&&t.building&&specs[t.building])p[specs[t.building].resource]+=specs[t.building].income});current=1-current;if(current===0)turn++;ap=3;selected=-1;moveFrom=-1;log(names[current]+' turn begins. Factories produced resources.');render();say('New turn: collect income and plan your moves.')}
-function showRules(){alert('GOAL: Capture the enemy capital.\n\nEach player gets 3 action points per turn. Moving an army to a neighboring land tile is free.\n\nFactories: Money $150 → +$50/turn (city); Stone $120 → +20/turn (mountain); Iron $180 → +15/turn (mountain); Wood $120 → +20/turn (forest).\n\nBarracks and advanced buildings are next on the roadmap. No upkeep. Battles roll multiple six-sided dice; larger armies roll more dice.');}
+(() => {
+'use strict';
+
+/* ---------- constants ---------- */
+const W = 480, H = 400, T = 20, S = T / 24;   // 480x400 tiles = about 200 screens                       // map size in tiles, tile size in px
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+let vmap, gsp = [], bsp = [];
+if (!ctx.roundRect) ctx.roundRect = function (x, y, w, h) { this.rect(x, y, w, h); };
+const $ = id => document.getElementById(id);
+const idx = (x, y) => y * W + x;
+const inb = (x, y) => x >= 0 && y >= 0 && x < W && y < H;
+const hash = (x, y, s = 0) => { let h = (x * 374761393 + y * 668265263 + s * 1274126177) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967295; };
+
+const DIRS = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+const GRASS = 0, WATER = 1, BORDER = 2;
+
+const DIFFS = [{ mult: 0.75, wave: 12 }, { mult: 1.0, wave: 8 }, { mult: 1.3, wave: 6 }];
+const TEAM = [null,
+  { c: '#2f7bf0', l: '#9cc2ff', d: '#1b4aa0' },
+  { c: '#f08a2a', l: '#ffd0a0', d: '#a85a10' }];
+const BDEF = {
+  pfac:     { name: 'People factory',   icon: '👥', m: 40,  g: 10, hp: 140, tip: '+0.8 people/s' },
+  mfac:     { name: 'Material factory', icon: '🧱', m: 40,  g: 10, hp: 140, tip: '+1.5 building material/s' },
+  gfac:     { name: 'Gold factory',     icon: '🪙', m: 40,  g: 10, hp: 140, tip: '+1.2 gold/s' },
+  city:     { name: 'Village',          icon: '🛖', m: 30,  g: 0,  hp: 100, tip: 'Build a village. Then grow it into a town, city and mega city' },
+  barracks: { name: 'Barracks',         icon: '⚔️', m: 60,  g: 30, hp: 170, req: 'fac', tip: 'Trains dots. Needs any factory' },
+  port:     { name: 'Port',             icon: '⚓', m: 50,  g: 30, hp: 150, tip: 'Must touch water. Ships dots across the sea' },
+  airport:  { name: 'Airport',          icon: '✈️', m: 120, g: 90, hp: 200, req: 'town', tip: 'Needs a Town or bigger. Flies dots anywhere' }
+};
+const CITY = [
+  { n: 'Village',   i: '🛖', hp: 100, cap: 5,  m: 0.3, g: 0.2, p: 0.15, cost: [30, 0] },
+  { n: 'Town',      i: '🏘️', hp: 160, cap: 12, m: 0.8, g: 0.5, p: 0.4,  cost: [60, 20] },
+  { n: 'City',      i: '🏙️', hp: 240, cap: 25, m: 1.6, g: 1.0, p: 0.8,  cost: [120, 60] },
+  { n: 'Mega city', i: '🌆', hp: 400, cap: 50, m: 3.2, g: 2.0, p: 1.5,  cost: [240, 150] }
+];
+const GROUPS = [['pfac', 'mfac', 'gfac'], ['city'], ['barracks', 'port', 'airport']];
+const ORDER = ['pfac', 'mfac', 'gfac', 'city', 'barracks', 'port', 'airport'];
+const HQ_HP = 1000;
+const DOT = { hp: 30, dmg: 5, cd: 0.6, speed: 4 * T, gold: 12, ppl: 1 };
+const SAIL = 8 * T, FLY = 16 * T;
+
+/* ---------- state ---------- */
+let terrain, owner, bmap, buildings, units, fx, P, tc, waterTiles;
+let hq1t, hq2t;
+const game = { diff: 1, time: 0, turn: 1, tp: 3, maxTP: 3, phase: 'player', running: false, over: false, speed: 1, placing: null };
+const mouse = { x: 0, y: 0, tx: -1, ty: -1, in: false };
+let drag = null;
+let toastTimer = 0;
+const ai = { t: 0, attacking: false, wave: 0 };
+let landT = 0, land1 = 0, land2 = 0, landTotal = 1;
+let setupStep = 0, setupSpots = []; // capital + three player-selected cities
+
+/* ---------- map helpers ---------- */
+const walk = (x, y) => inb(x, y) && terrain[idx(x, y)] === GRASS;
+function stepOK(x, y, dx, dy) {
+  if (!walk(x + dx, y + dy)) return false;
+  if (dx && dy) return walk(x + dx, y) && walk(x, y + dy);
+  return true;
+}
+function makeField(tx, ty) {
+  const f = new Int16Array(W * H).fill(-1);
+  if (!walk(tx, ty)) return f;
+  const q = [idx(tx, ty)]; f[q[0]] = 0;
+  for (let h = 0; h < q.length; h++) {
+    const c = q[h], cx = c % W, cy = (c / W) | 0;
+    for (const [dx, dy] of DIRS) {
+      if (!stepOK(cx, cy, dx, dy)) continue;
+      const n = idx(cx + dx, cy + dy);
+      if (f[n] < 0) { f[n] = f[c] + 1; q.push(n); }
+    }
+  }
+  return f;
+}
+function nearestWalkable(tx, ty) {
+  if (walk(tx, ty)) return [tx, ty];
+  for (let r = 1; r < 10; r++)
+    for (let y = ty - r; y <= ty + r; y++)
+      for (let x = tx - r; x <= tx + r; x++)
+        if (Math.max(Math.abs(x - tx), Math.abs(y - ty)) === r && walk(x, y)) return [x, y];
+  return null;
+}
+
+/* ---------- map generation ---------- */
+function genMap() {
+  // A continuous Central-European landmass: Germany on the west, Poland on the east.
+  // No random inland lakes. Rivers and mountain chains are drawn as geographic features.
+  const a = { x: Math.round(W * 0.24), y: Math.round(H * 0.54) };
+  const b = { x: Math.round(W * 0.76), y: Math.round(H * 0.54) };
+  terrain = new Uint8Array(W * H);
+  // Approximate shared Germany–Poland region silhouette, with a Baltic coast
+  // and a narrower southern edge rather than a rectangular arena.
+  const outline = [[.12,.22],[.19,.16],[.27,.13],[.36,.15],[.43,.11],[.52,.14],[.60,.12],[.69,.16],[.77,.14],[.85,.20],[.91,.27],[.94,.37],[.92,.48],[.95,.58],[.91,.68],[.86,.74],[.82,.82],[.74,.86],[.66,.84],[.58,.91],[.49,.88],[.41,.91],[.34,.86],[.27,.88],[.21,.81],[.17,.72],[.12,.65],[.09,.55],[.07,.44],[.09,.33]];
+  const inside = (px,py) => { let hit=false; for(let i=0,j=outline.length-1;i<outline.length;j=i++) { const a=outline[i],b=outline[j]; if(((a[1]>py)!==(b[1]>py))&&(px<(b[0]-a[0])*(py-a[1])/(b[1]-a[1])+a[0])) hit=!hit; } return hit; };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const nx=x/W, ny=y/H;
+    terrain[idx(x,y)] = inside(nx,ny) ? GRASS : WATER;
+    if (x===0||y===0||x===W-1||y===H-1) terrain[idx(x,y)] = BORDER;
+  }
+  // Keep both capitals well inside their respective country.
+  return [a,b];
+}
+
+function renderTerrain() {
+  vmap = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) vmap[i] = (hash(i % W, (i / W) | 0) * 8) | 0;
+  if (!gsp.length) {
+    for (let v = 0; v < 8; v++) {
+      const c = document.createElement('canvas'); c.width = c.height = T; const g = c.getContext('2d');
+      g.fillStyle = `hsl(${96 + v * 1.6},${46 + v}%,${38 + (v & 1) * 2.5}%)`; g.fillRect(0, 0, T, T);
+      for (let k = 0; k < 4; k++) {
+        const px = hash(v, k, 20) * (T - 4) + 2, py = hash(v, k, 30) * (T - 6) + 3;
+        g.strokeStyle = 'rgba(18,78,24,.38)'; g.lineWidth = 1; g.beginPath(); g.moveTo(px, py + 3); g.lineTo(px - 1, py - 1); g.moveTo(px, py + 3); g.lineTo(px + 1.5, py - 1); g.stroke();
+      }
+      if (v === 3 || v === 6) { g.fillStyle = v === 3 ? '#fff7d6' : '#ffd96b'; g.beginPath(); g.arc(5 + v, 7 + v, 1.5, 0, 6.3); g.fill(); }
+      gsp.push(c);
+    }
+    for (let v = 0; v < 4; v++) {
+      const c = document.createElement('canvas'); c.width = c.height = T; const g = c.getContext('2d');
+      g.fillStyle = '#183d21'; g.fillRect(0, 0, T, T);
+      for (let k = 0; k < 2; k++) {
+        const tx = 5 + hash(v, k) * 10, ty = 8 + hash(v, k + 9) * 8, r = 5 + hash(v, k + 4) * 3;
+        g.fillStyle = '#4a3320'; g.fillRect(tx - 1.5, ty, 3, 6);
+        g.fillStyle = '#245f30'; g.beginPath(); g.arc(tx, ty - 1, r, 0, 6.3); g.fill();
+        g.fillStyle = '#2f7d3b'; g.beginPath(); g.arc(tx - 1.5, ty - 3, r * 0.6, 0, 6.3); g.fill();
+      }
+      bsp.push(c);
+    }
+  }
+  mmImg = mm.getContext('2d').createImageData(MW, MH);
+}
+const WCOL = ['#2f7fd0', '#3384d6', '#2c78c6', '#3a8be0'];
+function drawTerrain(x0, y0, x1, y1, tm) {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const i = idx(x, y), t = terrain[i], X = x * T, Y = y * T, v = vmap[i];
+    if (t === GRASS) { if (zoom < 0.6) { ctx.fillStyle = '#4a9642'; ctx.fillRect(X, Y, T + 1, T + 1); } else ctx.drawImage(gsp[v], X, Y); }
+    else if (t === BORDER) ctx.drawImage(bsp[v & 3], X, Y);
+    else {
+      ctx.fillStyle = WCOL[v & 3]; ctx.fillRect(X, Y, T, T);
+      ctx.fillStyle = 'rgba(236,222,160,.9)';
+      if (x < W - 1 && terrain[i + 1] !== WATER) ctx.fillRect(X + T - 3, Y, 3, T);
+      if (x > 0 && terrain[i - 1] !== WATER) ctx.fillRect(X, Y, 3, T);
+      if (y < H - 1 && terrain[i + W] !== WATER) ctx.fillRect(X, Y + T - 3, T, 3);
+      if (y > 0 && terrain[i - W] !== WATER) ctx.fillRect(X, Y, T, 3);
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.2 + 0.2 * Math.sin(tm * 2 + v)) + ')';
+      ctx.fillRect(X + 3 + ((tm * 7 + v * 3) % (T - 11)), Y + 4 + ((v * 2) % 12), 8, 1.6);
+    }
+  }
+  // Blue waterways: decorative rivers, not impassable lakes.
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const river = (baseY, amp, freq, phase, width) => {
+    ctx.beginPath();
+    for (let x = x0; x <= x1 + 1; x++) {
+      const y = baseY + Math.sin(x * freq + phase) * amp + Math.sin(x * freq * 2.3 + phase) * amp * .22;
+      if (x === x0) ctx.moveTo(x*T+T/2, y*T+T/2); else ctx.lineTo(x*T+T/2, y*T+T/2);
+    }
+    ctx.strokeStyle = 'rgba(183,222,235,.9)'; ctx.lineWidth = width+3; ctx.stroke();
+    ctx.strokeStyle = '#579fca'; ctx.lineWidth = width; ctx.stroke();
+  };
+  river(H*.34, 13, .018, .8, 3.2); river(H*.68, 10, .021, 2.4, 2.6);
+  // Southern mountain chain, rendered as clustered shaded peaks.
+  for (let x = Math.max(0,x0); x <= x1; x += 5) {
+    const y = H*.84 + Math.sin(x*.035)*5;
+    if (y < y0-4 || y > y1+4) continue;
+    for (let j=0;j<3;j++) { const px=(x+j*2)*T, py=(y+Math.sin(j*2+x)*2)*T;
+      ctx.fillStyle='#65736b'; ctx.beginPath(); ctx.moveTo(px-13,py+10); ctx.lineTo(px,py-13-(j%2)*5); ctx.lineTo(px+15,py+10); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#d5ddd4'; ctx.beginPath(); ctx.moveTo(px,py-13-(j%2)*5); ctx.lineTo(px-5,py-3); ctx.lineTo(px+3,py-5); ctx.closePath(); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+/* ---------- players & buildings ---------- */
+function newPlayer(id, mult) {
+  return { id, mat: 120, gold: 50, ppl: 5, queue: 0, auto: false, mult, c: {}, rm: 1, rg: 0.5, rp: 0.3, cap: 10, hqObj: null };
+}
+function recount(t) {
+  const p = P[t], c = { pfac: 0, mfac: 0, gfac: 0, city: 0, barracks: 0, port: 0, airport: 0, hq: 0, fac: 0, town: 0 };
+  let rm = 1, rg = 0.5, rp = 0.3, cap = 10;
+  for (const b of buildings) {
+    if (b.team !== t || b.dead) continue;
+    c[b.type]++;
+    if (b.type === 'mfac') rm += 1.5; else if (b.type === 'gfac') rg += 1.2; else if (b.type === 'pfac') rp += 0.8;
+    else if (b.type === 'city') { const L = CITY[b.lvl]; rm += L.m; rg += L.g; rp += L.p; cap += L.cap; if (b.lvl >= 1) c.town++; }
+  }
+  c.fac = c.pfac + c.mfac + c.gfac;
+  Object.assign(p, { c, rm, rg, rp, cap });
+}
+function addBuilding(type, team, tx, ty) {
+  const hp = type === 'hq' ? HQ_HP : type === 'city' ? CITY[0].hp : BDEF[type].hp;
+  const b = { type, team, tx, ty, lvl: 0, x: (tx + 0.5) * T, y: (ty + 0.5) * T, hp, max: hp, age: 0, cd: 1, flash: 0 };
+  buildings.push(b); bmap[idx(tx, ty)] = b; recount(team);
+  return b;
+}
+function destroyBuilding(b) {
+  if (b.dead) return;
+  b.dead = true;
+  buildings.splice(buildings.indexOf(b), 1);
+  bmap[idx(b.tx, b.ty)] = null;
+  fx.push({ k: 'boom', x: b.x, y: b.y, t: 0.6, max: 0.6, r: b.type === 'hq' ? 40 : 22 });
+  recount(b.team);
+  if (b.type === 'hq') endGame(b.team === 1 ? 2 : 1);
+}
+function buildCheck(p, k) {
+  const d = BDEF[k];
+  if (d.req === 'fac' && !p.c.fac) return 'Build a Factory first!';
+  if (d.req === 'town' && !p.c.town) return 'Grow a city into a Town first!';
+  if (p.mat < d.m) return 'Not enough building material';
+  if (p.gold < d.g) return 'Not enough gold';
+  return null;
+}
+function coastal(tx, ty) { return DIRS.some(([dx, dy]) => inb(tx + dx, ty + dy) && terrain[idx(tx + dx, ty + dy)] === WATER); }
+function validTile(team, tx, ty) { return walk(tx, ty) && owner[idx(tx, ty)] === team && !bmap[idx(tx, ty)]; }
+function placeOK(team, k, tx, ty) { return validTile(team, tx, ty) && (k !== 'port' || coastal(tx, ty)); }
+function spendTP(team, action) {
+  if (team === 1 && (game.phase !== 'player' || game.tp < 1)) return 'No TP left this turn';
+  if (team === 1) { game.tp--; updateTurnHud(); }
+  return null;
+}
+function placeBuilding(team, k, tx, ty) {
+  const p = P[team], err = buildCheck(p, k); if (err) return err;
+  if (!validTile(team, tx, ty)) return 'Build on your own grass tiles';
+  if (k === 'port' && !coastal(tx, ty)) return 'Ports must touch the water';
+  const tpErr = spendTP(team, 'build'); if (tpErr) return tpErr;
+  p.mat -= BDEF[k].m; p.gold -= BDEF[k].g;
+  const b = addBuilding(k, team, tx, ty);
+  fx.push({ k: 'ping', x: b.x, y: b.y, t: 0.5, max: 0.5, c: TEAM[team].l });
+  return null;
+}
+function upgradeCity(team, b) {
+  const p = P[team]; if (b.lvl >= 3) return 'Already a mega city';
+  const n = CITY[b.lvl + 1];
+  if (p.mat < n.cost[0]) return 'Not enough building material';
+  if (p.gold < n.cost[1]) return 'Not enough gold';
+  const tpErr = spendTP(team, 'upgrade'); if (tpErr) return tpErr;
+  p.mat -= n.cost[0]; p.gold -= n.cost[1];
+  b.lvl++; b.hp += n.hp - b.max; b.max = n.hp; recount(team);
+  fx.push({ k: 'ping', x: b.x, y: b.y, t: 0.6, max: 0.6, c: '#fde047' });
+  return null;
+}
+
+/* ---------- units ---------- */
+function spawnAt(b) {
+  const opts = [];
+  for (const [dx, dy] of DIRS) if (walk(b.tx + dx, b.ty + dy)) opts.push([b.tx + dx, b.ty + dy]);
+  const [tx, ty] = opts.length ? opts[Math.random() * opts.length | 0] : [b.tx, b.ty];
+  units.push({ team: b.team, x: (tx + 0.5) * T + (Math.random() - 0.5) * 10, y: (ty + 0.5) * T + (Math.random() - 0.5) * 10,
+    hp: DOT.hp, max: DOT.hp, cd: Math.random() * 0.5, field: null, gx: 0, gy: 0, force: false, arr: 0, sel: false, flash: 0 });
+}
+function trainUnits(p, n, silent) {
+  if (!p.c.barracks) { if (!silent) say('Build a Barracks to train dots'); return false; }
+  n = Math.min(n, Math.floor(p.gold / DOT.gold), Math.floor(p.ppl));
+  if (n <= 0) { if (!silent) say(p.gold < DOT.gold ? 'Not enough gold' : 'Not enough people'); return false; }
+  const tpErr = spendTP(p.id, 'train'); if (tpErr) { if (!silent) say(tpErr); return false; }
+  p.gold -= n * DOT.gold; p.ppl -= n; p.queue += n;
+  return true;
+}
+function orderUnit(u, field, tx, ty, force, arr) {
+  u.field = field; u.force = force; u.arr = arr;
+  u.gx = (tx + 0.5) * T + (Math.random() - 0.5) * 14;
+  u.gy = (ty + 0.5) * T + (Math.random() - 0.5) * 14;
+}
+function tryMove(u, nx, ny) {
+  if (walk((nx / T) | 0, (ny / T) | 0)) { u.x = nx; u.y = ny; return true; }
+  if (walk((nx / T) | 0, (u.y / T) | 0)) { u.x = nx; return true; }
+  if (walk((u.x / T) | 0, (ny / T) | 0)) { u.y = ny; return true; }
+  return false;
+}
+function moveToward(u, x, y, dt) {
+  const dx = x - u.x, dy = y - u.y, d = Math.hypot(dx, dy);
+  if (d < 0.5) return d;
+  const s = Math.min(DOT.speed * dt, d);
+  tryMove(u, u.x + dx / d * s, u.y + dy / d * s);
+  return d;
+}
+function moveAlongField(u, dt) {
+  const f = u.field, tx = (u.x / T) | 0, ty = (u.y / T) | 0, d = f[idx(tx, ty)];
+  if (d < 0) { u.field = null; return; }
+  if (d <= u.arr && (d > 0 || Math.hypot(u.gx - u.x, u.gy - u.y) < 4)) { u.field = null; return; }
+  if (d === 0) {
+    const cx = Math.max(tx * T + 3, Math.min(tx * T + T - 3, u.gx)), cy = Math.max(ty * T + 3, Math.min(ty * T + T - 3, u.gy));
+    if (moveToward(u, cx, cy, dt) < 3) u.field = null;
+    return;
+  }
+  let best = null, bd = d;
+  for (const [dx, dy] of DIRS) {
+    const nx = tx + dx, ny = ty + dy;
+    if (!stepOK(tx, ty, dx, dy)) continue;
+    const nd = f[idx(nx, ny)];
+    if (nd >= 0 && nd < bd) { bd = nd; best = [nx, ny]; }
+  }
+  if (!best) { u.field = null; return; }
+  moveToward(u, (best[0] + 0.5) * T, (best[1] + 0.5) * T, dt);
+}
+function nearestEnemyUnit(team, x, y, r) {
+  let best = null, bd = r * r;
+  for (const e of units) {
+    if (e.team === team || e.hp <= 0 || e.sail) continue;
+    const d = (e.x - x) ** 2 + (e.y - y) ** 2;
+    if (d < bd) { bd = d; best = e; }
+  }
+  return best;
+}
+function nearestEnemyBuilding(team, x, y, r) {
+  let best = null, bd = r * r;
+  for (const e of buildings) {
+    if (e.team === team || e.dead) continue;
+    const d = (e.x - x) ** 2 + (e.y - y) ** 2;
+    if (d < bd) { bd = d; best = e; }
+  }
+  return best;
+}
+function hit(a, t, dmg) {
+  if (t.hp <= 0 || t.dead) return;
+  t.hp -= dmg; t.flash = 0.08;
+  fx.push({ k: 'line', x1: a.x, y1: a.y, x2: t.x, y2: t.y, t: 0.08, c: TEAM[a.team].l });
+  if (t.hp <= 0) {
+    if (t.type) destroyBuilding(t);
+    else fx.push({ k: 'boom', x: t.x, y: t.y, t: 0.3, max: 0.3, r: 9 });
+  }
+}
+
+/* ---------- ports & airports ---------- */
+function orderTransport(sel, wx, wy, fly) {
+  const w = nearestWalkable(wx / T | 0, wy / T | 0); if (!w) return;
+  let near = false;
+  for (let y = w[1] - 2; y <= w[1] + 2; y++) for (let x = w[0] - 2; x <= w[0] + 2; x++) if (inb(x, y) && terrain[idx(x, y)] === WATER) near = true;
+  const mine = type => buildings.filter(b => b.team === 1 && b.type === type);
+  let kind = fly ? 'fly' : 'sail';
+  if (kind === 'sail' && !(near && mine('port').length)) kind = 'fly';
+  const sites = mine(kind === 'sail' ? 'port' : 'airport');
+  if (!sites.length) { say(kind === 'sail' ? 'Build a Port to sail dots across water' : near ? 'Build a Port or Airport to cross the water' : 'Build an Airport to fly dots inland'); return; }
+  const ord = { kind, w }, fields = new Map(); let n = 0;
+  for (const u of sel) {
+    let best = null, bd = 1e9;
+    for (const st of sites) {
+      if (!fields.has(st)) fields.set(st, makeField(st.tx, st.ty));
+      if (fields.get(st)[idx((u.x / T) | 0, (u.y / T) | 0)] < 0) continue;
+      const d = Math.hypot(st.x - u.x, st.y - u.y); if (d < bd) { bd = d; best = st; }
+    }
+    if (!best) continue;
+    orderUnit(u, fields.get(best), best.tx, best.ty, true, 0); u.xport = { ord, site: best }; n++;
+  }
+  if (!n) say('Those dots cannot reach a ' + (kind === 'sail' ? 'port' : 'airport'));
+  else fx.push({ k: 'ping', x: (w[0] + 0.5) * T, y: (w[1] + 0.5) * T, t: 0.5, max: 0.5, c: '#fde047' });
+}
+
+/* ---------- AI ---------- */
+function aiPlace(k) {
+  const hq = hq2t, cand = [];
+  for (let y = hq.y - 7; y <= hq.y + 7; y++) for (let x = hq.x - 7; x <= hq.x + 7; x++)
+    if (validTile(2, x, y)) { const d = Math.hypot(x - hq.x, y - hq.y); if (d >= 1.5 && d <= 6) cand.push({ x, y }); }
+  if (!cand.length) return false;
+  const pk = cand[Math.random() * cand.length | 0];
+  return !placeBuilding(2, k, pk.x, pk.y);
+}
+function aiThink() {
+  const p = P[2];
+  let tp = 3;
+  // Prioritize economy, then barracks, then army. Every AI action costs one TP.
+  const priorities = ['mfac', 'gfac', 'pfac', 'barracks', 'city'];
+  while (tp > 0) {
+    let acted = false;
+    for (const k of priorities) {
+      const cap = { mfac: 4, gfac: 4, pfac: 3, barracks: 3, city: 4 }[k];
+      if (p.c[k] < cap && !buildCheck(p, k) && aiPlace(k)) { tp--; acted = true; break; }
+    }
+    if (acted) continue;
+    const cs = buildings.filter(b => b.team === 2 && b.type === 'city' && b.lvl < 3).sort((a, b) => a.lvl - b.lvl);
+    if (cs.length && !upgradeCity(2, cs[0])) { tp--; continue; }
+    if (p.c.barracks > 0 && p.queue < p.c.barracks && trainUnits(p, 1, true)) { tp--; continue; }
+    break;
+  }
+  const army = units.filter(u => u.team === 2 && u.hp > 0 && !u.sail);
+  const enemyHQ = P[1].hqObj;
+  if (army.length && enemyHQ && tp > 0) {
+    const f = makeField(hq1t.x, hq1t.y);
+    for (const u of army) if (!u.field) orderUnit(u, f, hq1t.x, hq1t.y, false, 1);
+    tp--; // one TP for issuing the army's movement order
+  }
+}
+
+/* ---------- game flow ---------- */
+function newGame(diff) {
+  game.diff = diff; game.time = 0; game.turn = 1; game.tp = 3; game.phase = 'player'; game.over = false; game.placing = null; drag = null; selB = null;
+  ai.attacking = false; ai.wave = 0; ai.t = 0; ai.f1 = null;
+  const [a, b] = genMap(); hq1t = a; hq2t = b;
+  owner = new Uint8Array(W * H); bmap = new Array(W * H).fill(null);
+  buildings = []; units = []; fx = [];
+  // Germany (blue) west; Poland (orange) east, divided by a natural wavy border.
+  const ph = 0.7;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++)
+    if (terrain[idx(x, y)] === GRASS) owner[idx(x, y)] = x < W / 2 + Math.round(2.2 * Math.sin(y * 0.035 + ph)) ? 1 : 2;
+  P = { 1: newPlayer(1, 1), 2: newPlayer(2, DIFFS[diff].mult) };
+  P[2].hqObj = addBuilding('hq', 2, b.x, b.y);
+  // AI's three starting cities are positioned in Poland.
+  for (const q of [{x:Math.round(W*.68),y:Math.round(H*.30)},{x:Math.round(W*.84),y:Math.round(H*.48)},{x:Math.round(W*.68),y:Math.round(H*.72)}]) addBuilding('city',2,q.x,q.y);
+  renderTerrain(); fit(); setCam(a.x * T - cv.width / 2, a.y * T - cv.height * 0.65); landT = 0; countLand(); updateMini();
+  $('bEndTurn').disabled = false; updateTurnHud(); $('end').classList.add('hidden');
+}
+function endGame(winner) {
+  game.over = true;
+  const turns = game.turn;
+  $('endT').innerHTML = winner === 1 ? '🏆 <i>Victory!</i>' : '💀 <u>Defeat</u>';
+  $('endP').textContent = winner === 1 ? `You destroyed the orange castle in ${turns} turns.` : `The orange army destroyed your castle after ${turns} turns.`;
+  setTimeout(() => $('end').classList.remove('hidden'), 700);
+}
+function countLand() {
+  land1 = land2 = landTotal = 0;
+  for (let i = 0; i < W * H; i++) if (terrain[i] === GRASS) { landTotal++; if (owner[i] === 1) land1++; else if (owner[i] === 2) land2++; }
+}
+
+function resolveTurn() {
+  // Economy is paid once per completed round, not continuously.
+  for (const t of [1, 2]) {
+    const p = P[t];
+    p.mat += p.rm * p.mult; p.gold += p.rg * p.mult;
+    p.ppl = Math.min(p.cap, p.ppl + p.rp * p.mult);
+    for (const b of buildings) if (b.team === t && b.type === 'barracks' && p.queue > 0) {
+      spawnAt(b); p.queue--; break;
+    }
+  }
+  // Resolve one strategic movement step for every unit.
+  for (const u of units) {
+    if (u.hp <= 0) continue;
+    u.flash = 0; u.cd = Math.max(0, (u.cd || 0) - 1);
+    if (u.sail) {
+      const s2 = u.sail; s2.t += 1; const k = Math.min(1, s2.t / s2.dur);
+      u.x = s2.x0 + (s2.x1 - s2.x0) * k; u.y = s2.y0 + (s2.y1 - s2.y0) * k;
+      if (k >= 1) { u.sail = null; u.field = null; }
+      continue;
+    }
+    const tgt = nearestEnemyUnit(u.team, u.x, u.y, 16 * S) || nearestEnemyBuilding(u.team, u.x, u.y, 24 * S);
+    if (tgt && u.cd <= 0) { hit(u, tgt, DOT.dmg); u.cd = 1; }
+    else if (u.field) moveAlongField(u, 1.15);
+    else {
+      const ch = nearestEnemyUnit(u.team, u.x, u.y, 68 * S) || nearestEnemyBuilding(u.team, u.x, u.y, 76 * S);
+      if (ch) moveToward(u, ch.x, ch.y, 1.15);
+    }
+    const ux = (u.x / T) | 0, uy = (u.y / T) | 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const x = ux + dx, y = uy + dy; if (!inb(x, y)) continue;
+      const i = idx(x, y), bb = bmap[i];
+      if (terrain[i] === GRASS && owner[i] !== u.team && (!bb || bb.team === u.team)) owner[i] = u.team;
+    }
+  }
+  units = units.filter(u => u.hp > 0);
+  for (const b of buildings) { b.age += 1; b.flash = 0; if (b.type === 'hq') { const e = nearestEnemyUnit(b.team, b.x, b.y, 95 * S); if (e) hit(b, e, 8); } }
+  countLand(); updateMini();
+  game.time = game.turn;
+}
+function update(dt) {
+  // Only cosmetic effects animate between turns. Armies and the economy are frozen.
+  for (const f of fx) f.t -= dt;
+  fx = fx.filter(f => f.t > 0);
+}
+function updateTurnHud() {
+  if (!$('tpHud')) return;
+  $('tpHud').textContent = `${game.tp} / 3 TP`;
+  $('bEndTurn').disabled = game.phase !== 'player' || game.over;
+  $('bEndTurn').textContent = game.phase === 'player' ? 'End turn ▶' : 'Enemy turn…';
+  setText('clock', `Turn ${game.turn}`);
+}
+function endPlayerTurn() {
+  if (!game.running || game.over || game.phase !== 'player') return;
+  game.phase = 'enemy'; game.tp = 0; updateTurnHud();
+  say('Enemy is taking its turn…');
+  aiThink();
+  resolveTurn();
+  if (game.over) return;
+  game.turn++; game.tp = 3; game.phase = 'player';
+  updateTurnHud();
+  say('Your turn — 3 TP available');
+}
+
+/* ---------- drawing ---------- */
+const iconOf = b => b.type === 'hq' ? '🏰' : b.type === 'city' ? CITY[b.lvl || 0].i : BDEF[b.type].icon;
+function drawBuilding(b, alpha = 1, scaleOverride) {
+  const big = b.type === 'hq', w = T * (big ? 1.55 : 0.86 + (b.type === 'city' ? (b.lvl || 0) * 0.1 : 0));
+  const pop = scaleOverride || Math.min(1, 0.4 + b.age * 3);
+  const tm = TEAM[b.team];
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(b.x, b.y); ctx.scale(pop, pop);
+  ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(0, w * 0.42, w * 0.55, w * 0.18, 0, 0, 6.3); ctx.fill();
+  ctx.fillStyle = tm.d; ctx.beginPath(); ctx.roundRect(-w / 2, -w / 2, w, w, 5); ctx.fill();
+  ctx.fillStyle = b.flash > 0 ? '#fff' : tm.c; ctx.beginPath(); ctx.roundRect(-w / 2 + 2, -w / 2 + 2, w - 4, w - 4, 4); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.roundRect(-w / 2 + 2, -w / 2 + 2, w - 4, (w - 4) * 0.4, 4); ctx.fill();
+  ctx.font = `${Math.round(w * 0.58)}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff';
+  ctx.fillText(iconOf(b), 0, 1);
+  ctx.restore();
+  if (alpha === 1 && b.hp < b.max) {
+    const bw = w, y = b.y + w / 2 + 3;
+    ctx.fillStyle = '#000a'; ctx.fillRect(b.x - bw / 2, y, bw, 4);
+    ctx.fillStyle = b.hp / b.max > 0.5 ? '#6fd17f' : b.hp / b.max > 0.25 ? '#f5c542' : '#ef4444';
+    ctx.fillRect(b.x - bw / 2, y, bw * b.hp / b.max, 4);
+  }
+}
+function draw() {
+  ctx.fillStyle = '#0d1a0b'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.save(); ctx.scale(zoom, zoom); ctx.translate(-cam.x, -cam.y);
+  const x0 = Math.max(0, Math.floor(cam.x / T)), y0 = Math.max(0, Math.floor(cam.y / T));
+  const x1 = Math.min(W - 1, Math.floor((cam.x + cv.width / zoom) / T)), y1 = Math.min(H - 1, Math.floor((cam.y + cv.height / zoom) / T));
+  drawTerrain(x0, y0, x1, y1, performance.now() / 1000);
+  for (let y = Math.max(1, y0); y <= Math.min(H - 2, y1); y++) for (let x = Math.max(1, x0); x <= Math.min(W - 2, x1); x++) {
+    const o = owner[idx(x, y)]; if (!o || terrain[idx(x, y)] !== GRASS) continue;
+    ctx.fillStyle = o === 1 ? 'rgba(47,123,240,.3)' : 'rgba(240,138,42,.3)';
+    ctx.fillRect(x * T, y * T, T, T);
+  }
+  ctx.lineWidth = 3; ctx.lineCap = 'round';
+  for (let y = Math.max(1, y0); y <= Math.min(H - 2, y1); y++) for (let x = Math.max(1, x0); x <= Math.min(W - 2, x1); x++) {
+    const o = owner[idx(x, y)]; if (!o || terrain[idx(x, y)] !== GRASS) continue;
+    let edge = false; const X = x * T, Y = y * T;
+    ctx.strokeStyle = o === 1 ? 'rgba(120,175,255,1)' : 'rgba(255,170,90,1)'; ctx.beginPath();
+    for (const [dx, dy] of DIRS.slice(0, 4)) {
+      const n = idx(x + dx, y + dy);
+      if (terrain[n] !== GRASS || owner[n] === o) continue;
+      edge = true;
+      if (dx === 1) { ctx.moveTo(X + T, Y); ctx.lineTo(X + T, Y + T); }
+      if (dx === -1) { ctx.moveTo(X, Y); ctx.lineTo(X, Y + T); }
+      if (dy === 1) { ctx.moveTo(X, Y + T); ctx.lineTo(X + T, Y + T); }
+      if (dy === -1) { ctx.moveTo(X, Y); ctx.lineTo(X + T, Y); }
+    }
+    if (edge) ctx.stroke();
+  }
+
+  // placement preview
+  if (game.placing && mouse.in && inb(mouse.tx, mouse.ty)) {
+    const ok = (placeOK(1, game.placing, mouse.tx, mouse.ty) || (game.placing === 'city' && bmap[idx(mouse.tx, mouse.ty)] && bmap[idx(mouse.tx, mouse.ty)].team === 1 && bmap[idx(mouse.tx, mouse.ty)].type === 'city')) && !buildCheck(P[1], game.placing);
+    ctx.fillStyle = ok ? 'rgba(80,230,110,.45)' : 'rgba(240,70,70,.45)';
+    ctx.fillRect(mouse.tx * T, mouse.ty * T, T, T);
+    drawBuilding({ type: game.placing, team: 1, x: (mouse.tx + 0.5) * T, y: (mouse.ty + 0.5) * T, age: 9, hp: 1, max: 1, flash: 0 }, 0.7, 1);
+  }
+
+  for (const b of buildings) drawBuilding(b);
+  if (selB && !selB.dead) { ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2; ctx.strokeRect(selB.tx * T + 1, selB.ty * T + 1, T - 2, T - 2); }
+
+  for (const u of units) {
+    if (u.sail) { ctx.font = '16px "Segoe UI Emoji","Apple Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText(u.sail.kind === 'sail' ? '⛵' : '✈️', u.x, u.y - 3); ctx.fillStyle = TEAM[u.team].c; ctx.beginPath(); ctx.arc(u.x, u.y + 8, 2.6, 0, 6.3); ctx.fill(); continue; }
+    const tmx = TEAM[u.team];
+    ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(u.x, u.y + 4, 5, 2.2, 0, 0, 6.3); ctx.fill();
+    if (u.sel) { ctx.strokeStyle = '#fde047'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(u.x, u.y, 8, 0, 6.3); ctx.stroke(); }
+    ctx.fillStyle = u.flash > 0 ? '#fff' : tmx.c; ctx.strokeStyle = tmx.d; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(u.x, u.y, 5.2, 0, 6.3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(u.x - 1.6, u.y - 1.8, 1.6, 0, 6.3); ctx.fill();
+    if (u.hp < u.max) {
+      ctx.fillStyle = '#000a'; ctx.fillRect(u.x - 6, u.y - 10, 12, 3);
+      ctx.fillStyle = '#6fd17f'; ctx.fillRect(u.x - 6, u.y - 10, 12 * u.hp / u.max, 3);
+    }
+  }
+
+  for (const f of fx) {
+    if (f.k === 'line') { ctx.strokeStyle = f.c; ctx.lineWidth = 1.5; ctx.globalAlpha = Math.min(1, f.t / 0.08); ctx.beginPath(); ctx.moveTo(f.x1, f.y1); ctx.lineTo(f.x2, f.y2); ctx.stroke(); ctx.globalAlpha = 1; }
+    else if (f.k === 'boom') { const p = 1 - f.t / f.max; ctx.globalAlpha = 1 - p; ctx.fillStyle = '#ffd27a'; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.3 + p), 0, 6.3); ctx.fill(); ctx.strokeStyle = '#ff7a3a'; ctx.lineWidth = 3; ctx.stroke(); ctx.globalAlpha = 1; }
+    else if (f.k === 'ping') { const p = 1 - f.t / f.max; ctx.globalAlpha = 1 - p; ctx.strokeStyle = f.c; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, f.y, 4 + p * 16, 0, 6.3); ctx.stroke(); ctx.globalAlpha = 1; }
+  }
+
+  if (drag && drag.moved) {
+    const x = Math.min(drag.sx, mouse.x), y = Math.min(drag.sy, mouse.y), w = Math.abs(mouse.x - drag.sx), h = Math.abs(mouse.y - drag.sy);
+    ctx.fillStyle = 'rgba(253,224,71,.12)'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#fde047'; ctx.lineWidth = 1.2; ctx.setLineDash([5, 3]); ctx.strokeRect(x, y, w, h); ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
+/* ---------- HUD ---------- */
+const cache = {};
+const setText = (id, v) => { if (cache[id] !== v) { cache[id] = v; $(id).textContent = v; } };
+const setHTML = (id, v) => { if (cache['h' + id] !== v) { cache['h' + id] = v; $(id).innerHTML = v; } };
+let selB = null;
+GROUPS.forEach((keys, gi) => keys.forEach(k => {
+  const d = BDEF[k], b = document.createElement('button');
+  b.className = 'btn'; b.id = 'b_' + k; b.title = d.tip;
+  b.innerHTML = `<span class="nm">${d.icon} ${d.name}</span><span class="cs">🧱${d.m}${d.g ? ' 🪙' + d.g : ''}</span><kbd>${ORDER.indexOf(k) + 1}</kbd>`;
+  b.addEventListener('click', () => selectBuild(k));
+  $('g' + gi).appendChild(b);
+}));
+const upBtn = document.createElement('button'); upBtn.className = 'btn lock'; upBtn.id = 'bUp';
+upBtn.addEventListener('click', upgradeSel); $('g1').appendChild(upBtn);
+
+function hud() {
+  const p = P[1];
+  setText('vMat', Math.floor(p.mat)); setText('vGold', Math.floor(p.gold)); setText('vPpl', `${Math.floor(p.ppl)}/${p.cap}`);
+  setText('rtMat', `+${p.rm.toFixed(1)}/turn`); setText('rtGold', `+${p.rg.toFixed(1)}/turn`); setText('rtPpl', `+${p.rp.toFixed(1)}/turn`);
+  setText('clock', `Turn ${game.turn}`);
+  const lp = land1 / landTotal * 100, le = land2 / landTotal * 100;
+  $('landP').style.width = lp + '%'; $('landE').style.width = le + '%';
+  setText('landTxt', `Land: you ${Math.round(lp)}% · enemy ${Math.round(le)}%`);
+  for (const k of ORDER) {
+    const el = $('b_' + k), d = BDEF[k], locked = (d.req === 'fac' && !p.c.fac) || (d.req === 'town' && !p.c.town);
+    el.classList.toggle('lock', !!locked);
+    el.classList.toggle('poor', !locked && (p.mat < d.m || p.gold < d.g));
+    el.classList.toggle('active', game.placing === k);
+  }
+  if (selB && (selB.dead || selB.team !== 1)) selB = null;
+  const sb = selB && selB.type === 'city' ? selB : null;
+  if (sb && sb.lvl < 3) {
+    const n = CITY[sb.lvl + 1];
+    setHTML('bUp', `<span class="nm">⬆ Grow to ${n.n}</span><span class="cs">🧱${n.cost[0]} 🪙${n.cost[1]}</span><kbd>U</kbd>`);
+    upBtn.classList.remove('lock'); upBtn.classList.toggle('poor', p.mat < n.cost[0] || p.gold < n.cost[1]);
+  } else {
+    setHTML('bUp', `<span class="nm">⬆ Grow city</span><span class="cs">${sb ? 'Fully grown' : 'Click a city'}</span><kbd>U</kbd>`);
+    upBtn.classList.add('lock');
+  }
+  const canT = p.c.barracks > 0;
+  $('bT1').classList.toggle('poor', !canT || p.gold < DOT.gold || p.ppl < 1);
+  $('bT5').classList.toggle('poor', !canT || p.gold < DOT.gold * 5 || p.ppl < 5);
+  setText('vArmy', units.filter(u => u.team === 1).length);
+  setText('vQueue', p.queue ? `${p.queue} in training` : '');
+}
+function say(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
+}
+
+/* ---------- player actions ---------- */
+function selectBuild(k) {
+  if (!game.running || game.over) return;
+  if (game.phase !== 'player' || game.tp < 1) { say('You need 1 TP to build'); return; }
+  if (game.placing === k) { game.placing = null; return; }
+  const err = buildCheck(P[1], k);
+  if (err) { say(err); return; }
+  game.placing = k;
+  say(k === 'city' ? 'Click grass for a village, or click one of your cities to grow it' : k === 'port' ? 'Click your grass next to the water' : `Click your grass to place a ${BDEF[k].name}`);
+}
+function upgradeSel() {
+  if (!game.running || game.over) return;
+  if (!selB || selB.dead || selB.type !== 'city') { say('Click one of your cities first'); return; }
+  const e = upgradeCity(1, selB); if (e) say(e);
+}
+function selected() { return units.filter(u => u.sel && u.hp > 0 && u.team === 1 && !u.sail); }
+function selectAll() { for (const u of units) u.sel = u.team === 1; if (!selected().length) say('No dots yet. Build a Barracks and train some'); }
+function issueMove(wx, wy, force, fly) {
+  const sel = selected(); if (!sel.length) return;
+  if (game.phase !== 'player' || game.tp < 1) { say('No TP left this turn'); return; }
+  const w = nearestWalkable(wx / T | 0, wy / T | 0); if (!w) return;
+  const f = makeField(w[0], w[1]), arr = Math.floor(Math.sqrt(sel.length) / 3), land = [], far = [];
+  for (const u of sel) { u.xport = null; (!fly && f[idx((u.x / T) | 0, (u.y / T) | 0)] >= 0 ? land : far).push(u); }
+  for (const u of land) orderUnit(u, f, w[0], w[1], force, arr);
+  if (land.length) fx.push({ k: 'ping', x: (w[0] + 0.5) * T, y: (w[1] + 0.5) * T, t: 0.5, max: 0.5, c: '#fde047' });
+  if (far.length) orderTransport(far, wx, wy, fly);
+  game.tp--; updateTurnHud();
+}
+function updateMouse(e) {
+  const r = cv.getBoundingClientRect();
+  mouse.sx = (e.clientX - r.left) * cv.width / r.width; mouse.sy = (e.clientY - r.top) * cv.height / r.height;
+  syncMouse();
+}
+function syncMouse() { mouse.x = mouse.sx / zoom + cam.x; mouse.y = mouse.sy / zoom + cam.y; mouse.tx = Math.floor(mouse.x / T); mouse.ty = Math.floor(mouse.y / T); }
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('pointerenter', () => mouse.in = true);
+cv.addEventListener('pointerleave', () => mouse.in = false);
+cv.addEventListener('pointermove', e => {
+  updateMouse(e); mouse.in = true;
+  if (pan) { setCam(pan.cx - (e.clientX - pan.sx) / zoom, pan.cy - (e.clientY - pan.sy) / zoom); syncMouse(); }
+  if (drag && Math.hypot(mouse.x - drag.sx, mouse.y - drag.sy) > 6) drag.moved = true;
+});
+cv.addEventListener('pointerdown', e => {
+  if (!game.running || game.over) return;
+  updateMouse(e);
+  if (game.phase === 'setup' && e.button === 0) {
+    const tx = mouse.tx, ty = mouse.ty;
+    if (inb(tx,ty) && terrain[idx(tx,ty)] === GRASS && owner[idx(tx,ty)] === 1 && !bmap[idx(tx,ty)]) {
+      if (setupSpots.some(q => Math.hypot(q.x-tx,q.y-ty) < 8)) { say('Place cities at least 8 tiles apart'); return; }
+      setupSpots.push({x:tx,y:ty}); setupStep++;
+      const labels = ['Capital','City 1','City 2','City 3'];
+      if (setupStep < 4) { $('setupText').textContent = `Choose a location for ${labels[setupStep]} in Germany (blue).`; $('setupCount').textContent = `${labels[setupStep]} · ${setupStep+1} of 4`; }
+      else { $('setupText').textContent = 'Your capital and three cities are placed. Ready to begin!'; $('setupCount').textContent = 'Nation planned ✓'; $('setupDone').textContent = 'Start battle'; }
+      return;
+    }
+    say('Choose an empty grass tile in your blue territory'); return;
+  }
+  if (e.button === 2) {
+    if (game.placing) { game.placing = null; return; }
+    issueMove(mouse.x, mouse.y, e.shiftKey, e.ctrlKey || e.metaKey); return;
+  }
+  if (e.button === 1) { e.preventDefault(); pan = { sx: e.clientX, sy: e.clientY, cx: cam.x, cy: cam.y }; return; }
+  if (e.button !== 0) return;
+  if (game.placing) {
+    const k = game.placing, ex = inb(mouse.tx, mouse.ty) ? bmap[idx(mouse.tx, mouse.ty)] : null, grow = k === 'city' && ex && ex.team === 1 && ex.type === 'city';
+    const err = grow ? upgradeCity(1, ex) : placeBuilding(1, k, mouse.tx, mouse.ty);
+    if (err) say(err); else if (!e.shiftKey && !grow) game.placing = null;
+    return;
+  }
+  drag = { sx: mouse.x, sy: mouse.y, moved: false, touch: e.pointerType === 'touch' };
+});
+window.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!game.running || game.over) return;
+  if (d.moved) {
+    const x1 = Math.min(d.sx, mouse.x), x2 = Math.max(d.sx, mouse.x), y1 = Math.min(d.sy, mouse.y), y2 = Math.max(d.sy, mouse.y);
+    if (!e.shiftKey) for (const u of units) u.sel = false;
+    for (const u of units) if (u.team === 1 && !u.sail && u.x >= x1 && u.x <= x2 && u.y >= y1 && u.y <= y2) u.sel = true;
+    selB = null;
+  } else {
+    let best = null, bd = 144;
+    for (const u of units) if (u.team === 1 && !u.sail) { const dd = (u.x - d.sx) ** 2 + (u.y - d.sy) ** 2; if (dd < bd) { bd = dd; best = u; } }
+    const tx = Math.floor(d.sx / T), ty = Math.floor(d.sy / T), bb = inb(tx, ty) ? bmap[idx(tx, ty)] : null;
+    if (best) { if (!e.shiftKey) for (const u of units) u.sel = false; best.sel = true; selB = null; }
+    else if (bb && bb.team === 1) selB = bb;
+    else if (d.touch && selected().length) issueMove(d.sx, d.sy, false, false);
+    else { for (const u of units) u.sel = false; selB = null; }
+  }
+});
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (!game.running || game.over) return;
+  const n = parseInt(k, 10);
+  if (n >= 1 && n <= ORDER.length) selectBuild(ORDER[n - 1]);
+  else if (k === 'u') upgradeSel();
+  else if (k === 't') trainUnits(P[1], 1);
+  else if (k === 'q') selectAll();
+  else if (k === 'escape') { game.placing = null; selB = null; for (const u of units) u.sel = false; }
+});
+$('bT1').addEventListener('click', () => game.running && !game.over && trainUnits(P[1], 1));
+$('bT5').addEventListener('click', () => game.running && !game.over && trainUnits(P[1], 5));
+$('bSel').addEventListener('click', () => game.running && !game.over && selectAll());
+$('bEndTurn').addEventListener('click', endPlayerTurn);
+
+/* ---------- camera & minimap ---------- */
+const cam = { x: 0, y: 0 }; let zoom = 1;
+let pan = null, mmDrag = false, mmImg;
+const keys = new Set();
+const mini = $('mini'), mctx = mini.getContext('2d'), MW = 240, MH = 200, mm = document.createElement('canvas');
+mm.width = MW; mm.height = MH;
+function setCam(x, y) { cam.x = Math.max(0, Math.min(W * T - cv.width / zoom, x)); cam.y = Math.max(0, Math.min(H * T - cv.height / zoom, y)); }
+window.addEventListener('keydown', e => { keys.add(e.key.toLowerCase()); if (e.key.startsWith('Arrow')) e.preventDefault(); });
+window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
+window.addEventListener('blur', () => keys.clear());
+window.addEventListener('pointerup', () => { pan = null; mmDrag = false; });
+function scrollCam(dt) {
+  if (!game.running) return;
+  let dx = 0, dy = 0;
+  if (keys.has('arrowleft') || keys.has('a')) dx -= 1; if (keys.has('arrowright') || keys.has('d')) dx += 1;
+  if (keys.has('arrowup') || keys.has('w')) dy -= 1; if (keys.has('arrowdown') || keys.has('s')) dy += 1;
+  if (mouse.in && !pan) {
+    const m = 18;
+    if (mouse.sx < m) dx -= 1; if (mouse.sx > cv.width - m) dx += 1; if (mouse.sy < m) dy -= 1; if (mouse.sy > cv.height - m) dy += 1;
+  }
+  if (dx || dy) setCam(cam.x + dx * 1000 * dt, cam.y + dy * 1000 * dt);
+}
+function updateMini() {
+  if (!mmImg) return;
+  const d = mmImg.data, sx = W / MW, sy = H / MH;
+  for (let py = 0; py < MH; py++) for (let px = 0; px < MW; px++) {
+    const i = idx((px * sx) | 0, (py * sy) | 0), t = terrain[i], o = owner[i], k = (py * MW + px) * 4;
+    let r, g, b;
+    if (t === WATER) { r = 47; g = 127; b = 208; } else if (t === BORDER) { r = 24; g = 61; b = 33; }
+    else if (o === 1) { r = 70; g = 120; b = 205; } else if (o === 2) { r = 225; g = 140; b = 60; } else { r = 74; g = 150; b = 66; }
+    d[k] = r; d[k + 1] = g; d[k + 2] = b; d[k + 3] = 255;
+  }
+  mm.getContext('2d').putImageData(mmImg, 0, 0);
+}
+function drawMini() {
+  mctx.drawImage(mm, 0, 0);
+  const sx = MW / (W * T), sy = MH / (H * T);
+  for (const u of units) { mctx.fillStyle = TEAM[u.team].c; mctx.fillRect(u.x * sx - 1, u.y * sy - 1, 2.5, 2.5); }
+  for (const b of buildings) if (b.type === 'hq') { mctx.fillStyle = '#fff'; mctx.fillRect(b.x * sx - 3, b.y * sy - 3, 6, 6); mctx.fillStyle = TEAM[b.team].c; mctx.fillRect(b.x * sx - 2, b.y * sy - 2, 4, 4); }
+  mctx.strokeStyle = '#fff'; mctx.lineWidth = 1.5; mctx.strokeRect(cam.x * sx, cam.y * sy, cv.width / zoom * sx, cv.height / zoom * sy);
+}
+function miniPoint(e) { const r = mini.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W * T, y: (e.clientY - r.top) / r.height * H * T }; }
+mini.addEventListener('contextmenu', e => e.preventDefault());
+mini.addEventListener('pointerdown', e => {
+  if (!game.running) return;
+  const p = miniPoint(e);
+  if (e.button === 2) { if (!game.over) issueMove(p.x, p.y, e.shiftKey, e.ctrlKey || e.metaKey); return; }
+  mmDrag = true; setCam(p.x - cv.width / zoom / 2, p.y - cv.height / zoom / 2);
+});
+window.addEventListener('pointermove', e => { if (mmDrag) { const p = miniPoint(e); setCam(p.x - cv.width / zoom / 2, p.y - cv.height / zoom / 2); } });
+
+function zoomAt(f, sx, sy) {
+  const wx = sx / zoom + cam.x, wy = sy / zoom + cam.y;
+  zoom = Math.max(0.3, Math.min(2, zoom * f)); setCam(wx - sx / zoom, wy - sy / zoom);
+}
+cv.addEventListener('wheel', e => { e.preventDefault(); updateMouse(e); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, mouse.sx, mouse.sy); }, { passive: false });
+$('zIn').addEventListener('click', () => zoomAt(1.25, cv.width / 2, cv.height / 2));
+$('zOut').addEventListener('click', () => zoomAt(0.8, cv.width / 2, cv.height / 2));
+window.addEventListener('keydown', e => {
+  if (e.key === '+' || e.key === '=') zoomAt(1.25, cv.width / 2, cv.height / 2);
+  if (e.key === '-') zoomAt(0.8, cv.width / 2, cv.height / 2);
+});
+function toggleBar(id, btn, open, shut) { const el = $(id); el.classList.toggle('collapsed'); btn.textContent = el.classList.contains('collapsed') ? shut : open; fit(); }
+$('tglTop').addEventListener('click', e => toggleBar('top', e.currentTarget, '▲', '▼'));
+$('tglBot').addEventListener('click', e => toggleBar('bar', e.currentTarget, '▼', '▲'));
+
+/* menu */
+let pickedDiff = 1;
+document.querySelectorAll('#diffs button').forEach(b => b.addEventListener('click', () => {
+  pickedDiff = +b.dataset.d;
+  document.querySelectorAll('#diffs button').forEach(x => x.classList.toggle('on', x === b));
+}));
+$('start').addEventListener('click', () => { newGame(pickedDiff); game.running = true; game.phase = 'setup'; setupStep = 0; setupSpots = []; $('menu').classList.add('hidden'); $('setup').classList.remove('hidden'); $('setupText').textContent = 'Click an empty tile in blue Germany to place your capital.'; $('setupCount').textContent = 'Capital · 1 of 4'; $('setupDone').textContent = 'Finish setup'; });
+$('setupDone').addEventListener('click', () => { if (setupStep < 4) { say(`Place ${4-setupStep} more location(s)`); return; } if (game.phase !== 'setup') return; const [cap,...cities] = setupSpots; hq1t = cap; P[1].hqObj = addBuilding('hq',1,cap.x,cap.y); for (const q of cities) addBuilding('city',1,q.x,q.y); game.phase = 'player'; game.tp = 3; $('setup').classList.add('hidden'); setCam(cap.x*T-cv.width/2,cap.y*T-cv.height*.65); countLand(); updateMini(); updateTurnHud(); say('Your nation is ready — 3 TP available'); });
+$('again').addEventListener('click', () => { $('setup').classList.add('hidden'); $('end').classList.add('hidden'); $('menu').classList.remove('hidden'); game.running = false; newGame(pickedDiff); });
+
+/* sizing */
+function fit() { const st = $('stage'); cv.width = st.clientWidth; cv.height = st.clientHeight; setCam(cam.x, cam.y); }
+window.addEventListener('resize', fit);
+
+/* ---------- main loop ---------- */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (game.running && !game.over) update(dt);
+  scrollCam(dt); syncMouse(); draw(); drawMini(); hud();
+  requestAnimationFrame(frame);
+}
+
+newGame(1);            // background map behind the menu
+requestAnimationFrame(frame);
+})();
 </script>
-</body></html>
+</body>
+</html>
