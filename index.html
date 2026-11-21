@@ -955,8 +955,30 @@ document.querySelectorAll('#diffs button').forEach(b => b.addEventListener('clic
   pickedDiff = +b.dataset.d;
   document.querySelectorAll('#diffs button').forEach(x => x.classList.toggle('on', x === b));
 }));
-$('start').addEventListener('click', () => { newGame(pickedDiff); game.running = true; game.phase = 'setup'; setupStep = 0; setupSpots = []; $('menu').classList.add('hidden'); $('setup').classList.remove('hidden'); $('setupText').textContent = 'Click an empty tile in blue Germany to place your capital.'; $('setupCount').textContent = 'Capital · 1 of 4'; $('setupDone').textContent = 'Finish setup'; });
-$('setupDone').addEventListener('click', () => { if (setupStep < 4) { say(`Place ${4-setupStep} more location(s)`); return; } if (game.phase !== 'setup') return; const [cap,...cities] = setupSpots; hq1t = cap; P[1].hqObj = addBuilding('hq',1,cap.x,cap.y); for (const q of cities) addBuilding('city',1,q.x,q.y); game.phase = 'player'; game.tp = 3; $('setup').classList.add('hidden'); setCam(cap.x*T-cv.width/2,cap.y*T-cv.height*.65); countLand(); updateMini(); updateTurnHud(); say('Your nation is ready — 3 TP available'); });
+$('start').addEventListener('click', () => { newGame(pickedDiff); game.running = true; game.phase = 'setup'; setupStep = 0; setupSpots = []; $('menu').classList.add('hidden'); $('setup').classList.remove('hidden'); $('setup').style.display = 'flex'; $('setupText').textContent = 'Click an empty tile in blue Germany to place your capital.'; $('setupCount').textContent = 'Capital · 1 of 4'; $('setupDone').textContent = 'Finish setup'; });
+$('setupDone').addEventListener('click', () => {
+  if (game.phase !== 'setup') return;
+  if (setupSpots.length < 4) {
+    const remaining = 4 - setupSpots.length;
+    $('setupText').textContent = `You still need to place ${remaining} more ${remaining === 1 ? 'location' : 'locations'} on the blue side.`;
+    $('setupCount').textContent = `${setupSpots.length} of 4 placed`;
+    say(`Place ${remaining} more ${remaining === 1 ? 'location' : 'locations'} first`);
+    return;
+  }
+  const [cap, ...cities] = setupSpots;
+  hq1t = cap;
+  P[1].hqObj = addBuilding('hq', 1, cap.x, cap.y);
+  for (const q of cities) addBuilding('city', 1, q.x, q.y);
+  game.phase = 'player';
+  game.tp = 3;
+  // Hide the overlay explicitly as well as applying the hidden class. This
+  // avoids the setup card remaining visible if another style overrides .hidden.
+  $('setup').classList.add('hidden');
+  $('setup').style.display = 'none';
+  setCam(cap.x*T-cv.width/2, cap.y*T-cv.height*.65);
+  countLand(); updateMini(); updateTurnHud();
+  say('Your nation is ready — 3 TP available');
+});
 $('again').addEventListener('click', () => { $('setup').classList.add('hidden'); $('end').classList.add('hidden'); $('menu').classList.remove('hidden'); game.running = false; newGame(pickedDiff); });
 
 /* sizing */
@@ -976,5 +998,3 @@ newGame(1);            // background map behind the menu
 requestAnimationFrame(frame);
 })();
 </script>
-</body>
-</html>
